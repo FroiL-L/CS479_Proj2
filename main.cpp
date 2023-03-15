@@ -1,6 +1,7 @@
-#include "ImageType.hpp"
-#include "ImageHelpers.hpp"
 #include <iostream>
+#include "ReadImage.cpp"
+#include "ReadImageHeader.cpp"
+#include "WriteImage.cpp"
 
 int main(int argc, char** argv) {
 	ImageType img;
