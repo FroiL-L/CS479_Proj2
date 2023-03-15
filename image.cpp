@@ -60,6 +60,14 @@ ImageType::ImageType(int tmpN, int tmpM, int tmpQ)
 }
 
 
+/* ~ImageType():
+ * 	Destructor for ImageType.
+ */
+ImageType::~ImageType() {
+ delete[] pixelValue;
+}
+
+
 /* getImageInfo():
  * 	Gets the metadata information for the contained image.
  * args:
