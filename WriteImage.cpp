@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <iostream>
+
 using namespace std;
 
 #include "image.h"
@@ -102,6 +104,7 @@ void writeImagePPM(char fname[], ImageType& image)
      charImage[i*3*M+j]=(unsigned char)val.r;
      charImage[i*3*M+j+1]=(unsigned char)val.g;
      charImage[i*3*M+j+2]=(unsigned char)val.b;
+     //cout << val.r << " " << val.g << " " << val.b << endl;
    }
 
  ofp.open(fname, ios::out | ios::binary);

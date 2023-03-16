@@ -21,6 +21,7 @@
 using namespace std;
 
 #include "image.h"
+#include "rgb.h"
 
 
 // Functions

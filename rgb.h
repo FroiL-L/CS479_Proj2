@@ -16,9 +16,12 @@
 // an example -- you would need to add more functions
 
 struct RGB {
+  RGB();
   RGB(int, int, int);
   RGB& operator=(RGB);
   int r, g, b;    // r: Red value; g: Green value; b: Blue value;
-} RGB;
+};
+
+#include "rgb.cpp"
 
 #endif

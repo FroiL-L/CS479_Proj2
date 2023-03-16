@@ -18,8 +18,9 @@
 using namespace std;
 
 #include "image.h"
+#include "rgb.h"
 
-
+#include <iostream>
 // Functions
 
 /* ImageType():
@@ -53,7 +54,7 @@ ImageType::ImageType(int tmpN, int tmpM, int tmpQ)
 
  pixelValue = new int* [N];
  for(i=0; i<N; i++) {
-   pixelValue[i] = new int[M];
+   pixelValue[i] = new int[M*3];
    for(j=0; j<M; j++)
      pixelValue[i][j] = 0;
  }
@@ -64,6 +65,9 @@ ImageType::ImageType(int tmpN, int tmpM, int tmpQ)
  * 	Destructor for ImageType.
  */
 ImageType::~ImageType() {
+ for(int i = 0; i < N; i++) {
+	delete[] pixelValue[i];
+ }
  delete[] pixelValue;
 }
 
@@ -99,7 +103,12 @@ void ImageType::setImageInfo(int rows, int cols, int levels)
  N= rows;
  M= cols;
  Q= levels;
-} 
+
+ pixelValue = new int*[N];
+ for(int i = 0; i < M; i++) {
+	pixelValue[i] = new int[M];
+ }
+}
 
 
 /* setPixelVal():
@@ -117,6 +126,23 @@ void ImageType::setPixelVal(int i, int j, int val)
 }
 
 
+/* setPixelVal():
+ * 	Sets the pixel value at a given location.
+ * args:
+ * 	@i: The row to access.
+ * 	@j: The column to access.
+ * 	@val: The value to set the pixel value as.
+ * return:
+ * 	void
+ */
+void ImageType::setPixelVal(int i, int j, RGB& val)
+{
+ pixelValue[i][j*3] = val.r;
+ pixelValue[i][j*3+1] = val.g;
+ pixelValue[i][j*3+2] = val.b;
+}
+
+
 /* getPixelVal():
  * 	Get the pixel value at a given location.
  * args:
@@ -129,4 +155,21 @@ void ImageType::setPixelVal(int i, int j, int val)
 void ImageType::getPixelVal(int i, int j, int& val)
 {
  val = pixelValue[i][j];
+}
+
+
+/* getPixelVal():
+ * 	Get the pixel value at a given location.
+ * args:
+ * 	@i: The row to look for the pixel value.
+ * 	@j: The column to look for the pixel value.
+ * 	@val: Location to store the pixel value.
+ * return:
+ * 	void
+ */
+void ImageType::getPixelVal(int i, int j, RGB& val)
+{
+ val.r = pixelValue[i][j*3];
+ val.g = pixelValue[i][j*3+1];
+ val.b = pixelValue[i][j*3+2];
 }
