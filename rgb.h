@@ -22,4 +22,6 @@ struct RGB {
   int r, g, b;    // r: Red value; g: Green value; b: Blue value;
 };
 
+#include "rgb.cpp"
+
 #endif

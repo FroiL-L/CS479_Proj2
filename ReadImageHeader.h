@@ -14,4 +14,6 @@
 */
 void readImageHeader(char fname[], int& N, int& M, int& Q, bool& type);
 
+#include "ReadImageHeader.cpp"
+
 #endif

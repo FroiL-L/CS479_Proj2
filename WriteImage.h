@@ -20,4 +20,6 @@ void writeImagePGM(char fname[], ImageType& image);
  */
 void writeImagePPM(char fname[], ImageType& image);
 
+#include "WriteImage.cpp"
+
 #endif

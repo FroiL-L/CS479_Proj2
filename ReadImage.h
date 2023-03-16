@@ -26,4 +26,6 @@ void readImagePGM(char fname[], ImageType& image);
  */
 void readImagePPM(char fname[], ImageType& image);
 
+#include "ReadImage.cpp"
+
 #endif

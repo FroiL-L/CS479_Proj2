@@ -33,4 +33,6 @@ class ImageType {
    int **pixelValue;  // pixelValue: List of pixel values.
 };
 
+#include "image.cpp"
+
 #endif
