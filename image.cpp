@@ -173,3 +173,37 @@ void ImageType::getPixelVal(int i, int j, RGB& val)
  val.g = pixelValue[i][j*3+1];
  val.b = pixelValue[i][j*3+2];
 }
+
+
+/* operator=():
+ * 	Modifies the left-hand object (self) by reassigning its values
+ * 	to match that of the right-hand object.
+ * args:
+ * 	@image: The source to copy values from.
+ * return:
+ * 	(*)this
+ */
+ImageType& ImageType::operator=(ImageType& image) {
+	// Remove old pixel values
+	for(int i = 0; i < N; i++) {
+		delete[] pixelValue[i];
+	}
+	if(pixelValue != NULL)
+		delete[] pixelValue;
+
+	// Reassign basic variables
+	image.getImageInfo(N, M, Q);
+
+	// Allocate and store new pixel values
+	pixelValue = new int*[N];
+	for(int i = 0; i < N; i++) {
+		pixelValue[i] = new int[M*3];
+		for(int j = 0; j < M; j++) {
+			int val;
+			image.getPixelVal(i, j, val);
+			pixelValue[i][j] = val;
+		}
+	}
+
+	return *this;
+}
