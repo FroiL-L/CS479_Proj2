@@ -28,6 +28,7 @@ class ImageType {
    void setPixelVal(int, int, RGB&);
    void getPixelVal(int, int, int&);
    void getPixelVal(int, int, RGB&);
+   ImageType& operator=(ImageType&);
  private:
    int N, M, Q;       // N: Rows; M: Columns; Q: Max. pixel value;
    int **pixelValue;  // pixelValue: List of pixel values.

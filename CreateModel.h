@@ -32,4 +32,32 @@ void getImage(char fName[], ImageType& image);
  */
 bool learnForModel(char trainFName[], char refFName[], char modelFName[]);
 
+
+/* estimateRGMean():
+ *	Calculates the sample mean for red and green values contained
+ *	within a given file.
+ * args:
+ * 	@fName: The path to the file containing the feature values.
+ * 	@mur: The location to store the sample mean for reds.
+ * 	@mug: The location to store the sample mean for greens.
+ * return:
+ * 	void
+ */
+void estimateRGMean(char fName[], float& mur, float& mug);
+
+
+/* estimateCovarianceRG():
+ * 	Calculates the sample covariances contained within the upper
+ * 	triangular section of a covariance matrix for the red and
+ * 	green features.
+ * args:
+ * 	@fName: The path to the file containing the samples.
+ * 	@covrr: The covariance between red and red.
+ * 	@covgg: The covariance between green and green.
+ * 	@covrg: The covariance between red and green.
+ */
+void estimateCovarianceRG(char fName[], float& covrr, float& covgg, float& covrg, float mur, float mug);
+
+#include "CreateModel.cpp"
+
 #endif
