@@ -20,7 +20,7 @@ using namespace std;
 #include "image.h"
 #include "rgb.h"
 
-#include <iostream>
+
 // Functions
 
 /* ImageType():
