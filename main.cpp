@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "ReadImage.h"
 #include "ReadImageHeader.h"
 #include "WriteImage.h"
@@ -46,7 +47,9 @@ void testClassifyPixel() {
 	val.g = 187;
 	val.b = 170;
 
-	classifyForPixel(val);
+	float result = classifyForPixel(val);
+
+	std::cout << std::endl << "Pixel result: " << result << std::endl;
 }
 
 void calculatePriors() {
@@ -88,6 +91,52 @@ void testSkinClassification() {
 	writeImagePPM((char*)"test.ppm", outImage);
 }
 
+void testSkinMisclassification(float& fpRate, float& fnRate, float t) {
+	ImageType image, outImage, refImage;
+	int fp, fn, rows, cols, levels, totalPix;
+
+        getImage((char*)TRN_PPM_1, image);
+	outImage = image;
+	getImage((char*)REF_PPM_1, refImage);
+
+	std::cout << std::endl << "Classifying image pixels..." << std::endl;
+        classifyForImage(image, outImage, t);
+
+	std::cout << "Testing for misclassifications..." << std::endl;
+        getMisclass(outImage, refImage, fp, fn);
+
+	outImage.getImageInfo(rows, cols, levels);
+	totalPix = rows * cols;
+
+	fpRate = (float)fp / totalPix;
+	fnRate = (float)fn / totalPix;
+
+	std::cout << std::endl << "Misclassification: t = " << t << std::endl;
+	std::cout << "================================" << std::endl;
+	std::cout << "False positive count: " << fp << std::endl;
+	std::cout << "False negative count: " << fn << std::endl;
+	std::cout << "Total pixels tested:  " << totalPix << std::endl;
+	std::cout << "False positive rate:  " << fpRate << std::endl;
+	std::cout << "False negative rate:  " << fnRate << std::endl;
+}
+
+void getROCVals() {
+	std::ofstream outFile("roc.txt");
+	float fpRate, fnRate;
+
+	if(!outFile.is_open()) {
+		std::cout << "Could not open file roc.txt" << std::endl;
+		exit(1);
+	}
+
+	for(float i = 0.0; i <= 7.5; i += 0.367318) {
+		testSkinMisclassification(fpRate, fnRate, i);
+		outFile << fpRate << "," << fnRate << std::endl;
+	}
+
+	outFile.close();
+}
+
 void calculateMeans() {
 	float mur, mug;
 	estimateRGMean((char*)MOD_OUT, mur, mug);
@@ -116,12 +165,8 @@ void calculateCov() {
 }
 
 int main(int argc, char** argv) {
-	//testClassifyPixel();
-	//genModel();
-	calculatePriors();
-	calculateMeans();
-	calculateCov();
-	testSkinClassification();
-
+	//getROCVals();
+	float fp, fn;
+	testSkinMisclassification(fp, fn, 7.34636);
 	return 0;
 }
