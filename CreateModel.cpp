@@ -61,10 +61,11 @@ void getImage(char fName[], ImageType& image) {
  * 		be used as reference data.
  * 	@modelFName: The path to the file that will be used as the
  * 		location to store the model values.
+ * 	@type: The type of color scheme to use (1=RGB, 0=YCrCb).
  * return:
  * 	bool: 1 for success | 0 for failure
  */
-bool learnForModel(char trainFName[], char refFName[], char modelFName[]) {
+bool learnForModel(char trainFName[], char refFName[], char modelFName[], bool type = true) {
 	// Declare variables
 	int hRows, hCols, hLevel;
 	int* modelData;
@@ -99,8 +100,15 @@ bool learnForModel(char trainFName[], char refFName[], char modelFName[]) {
 					|| (val.r == 252 && val.g == 3 && val.b == 3)) {
 				//Add training values to model
 				trainData.getPixelVal(i, j/3, val);
-				float r = (float)val.r / (val.r + val.g + val.b);
-				float g = (float)val.g / (val.r + val.g + val.b);
+				float r, g;
+				if (type == true) {
+					r = (float)val.r / (val.r + val.g + val.b);
+					g = (float)val.g / (val.r + val.g + val.b);
+				}
+				else {
+					r = (0.500 * val.r) - (0.419 * val.g) - (0.081 * val.b);
+					g = - (0.169 * val.r) - (0.0332 * val.g) + (0.500 * val.b);
+				}
 				modelFile << r << " "
 					<< g << std::endl;
 			}

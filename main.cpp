@@ -15,6 +15,7 @@
 #define TRN_PPM_2 "./data/Training_3.ppm"
 #define TRN_PPM_3 "./data/Training_6.ppm"
 #define MOD_OUT "model.txt"
+#define MOD_YCC "model_ycc.txt"
 
 void basicCopyPaste() {
 	int r, c, maxval;
@@ -32,13 +33,16 @@ void basicCopyPaste() {
 
 }
 
-void genModel() {
-	std::cout << "Learning iteration 1..." << std::endl;
-	learnForModel((char*)TRN_PPM_1, (char*)REF_PPM_1, (char*)MOD_OUT);
-	std::cout << "Learning iteration 2..." << std::endl;
-	learnForModel((char*)TRN_PPM_2, (char*)REF_PPM_2, (char*)MOD_OUT);
-	std::cout << "Learning iteration 3..." << std::endl;
-	learnForModel((char*)TRN_PPM_3, (char*)REF_PPM_3, (char*)MOD_OUT);
+void genModel(bool isRGB = true) {
+	std::cout << "Learning from " << REF_PPM_1 << std::endl;
+	
+	if (isRGB) {
+		learnForModel((char*)TRN_PPM_1, (char*)REF_PPM_1, (char*)MOD_OUT, isRGB);
+	}
+	else {
+		learnForModel((char*)TRN_PPM_1, (char*)REF_PPM_1, (char*)MOD_YCC, isRGB);
+	}
+	
 }
 
 void testClassifyPixel() {
@@ -62,13 +66,13 @@ void calculatePriors() {
 	skinCount += tmpSkin;
 	totalCount += tmpTotal;
 
-	estimatePriors((char*)REF_PPM_2, tmpSkin, tmpTotal);
+	/*estimatePriors((char*)REF_PPM_2, tmpSkin, tmpTotal);
         skinCount += tmpSkin;
         totalCount += tmpTotal;
 
 	estimatePriors((char*)REF_PPM_3, tmpSkin, tmpTotal);
         skinCount += tmpSkin;
-        totalCount += tmpTotal;
+        totalCount += tmpTotal;*/
 
 	skinPrior = (float)skinCount / totalCount;
 
@@ -79,19 +83,19 @@ void calculatePriors() {
 	std::cout << "Total pixels encountered: " << totalCount << std::endl;
 }
 
-void testSkinClassification() {
+void testSkinClassification(bool isRGB, float t) {
 	ImageType image;
 	ImageType outImage;
 
 	getImage((char*)TRN_PPM_1, image);
 	outImage = image;
 
-	classifyForImage(image, outImage, 6.75);
+	classifyForImage(image, outImage, t, isRGB);
 
 	writeImagePPM((char*)"test.ppm", outImage);
 }
 
-void testSkinMisclassification(float& fpRate, float& fnRate, float t) {
+void testSkinMisclassification(float& fpRate, float& fnRate, float t, bool isRGB) {
 	ImageType image, outImage, refImage;
 	int fp, fn, rows, cols, levels, totalPix;
 
@@ -100,7 +104,7 @@ void testSkinMisclassification(float& fpRate, float& fnRate, float t) {
 	getImage((char*)REF_PPM_1, refImage);
 
 	std::cout << std::endl << "Classifying image pixels..." << std::endl;
-        classifyForImage(image, outImage, t);
+        classifyForImage(image, outImage, t, isRGB);
 
 	std::cout << "Testing for misclassifications..." << std::endl;
         getMisclass(outImage, refImage, fp, fn);
@@ -120,26 +124,88 @@ void testSkinMisclassification(float& fpRate, float& fnRate, float t) {
 	std::cout << "False negative rate:  " << fnRate << std::endl;
 }
 
-void getROCVals() {
-	std::ofstream outFile("roc.txt");
-	float fpRate, fnRate;
+void getROCVals(bool isRGB) {
+	char* fName;
+	float fpRate, fnRate, minT, maxT, stride;
+	int fp = 0, fn = 0, totalPix = 0;
+	int fpTmp, fnTmp;
+	int rows, cols, levels;
+	ImageType image, refImage, outImage;
 
+	// Configure for RGB
+	if (isRGB) {
+		fName = (char*)"roc.txt";
+		minT = 0.0;
+		maxT = 7.3;	// Max prob value = 7.10792
+		stride = maxT / 20;
+	}
+	// Configure for YCrCb
+	else {
+		fName = (char*)"roc_ycc.txt";
+		minT = -4.53314 - 4.53314;	// Translate to match [0,maxT]
+		maxT = -4.6;			// Max prob value = -4.53314
+		stride = -maxT / 20;
+	}
+
+	// Open file
+	std::ofstream outFile(fName);
+
+	// Test for inproper file access
 	if(!outFile.is_open()) {
 		std::cout << "Could not open file roc.txt" << std::endl;
 		exit(1);
 	}
 
-	for(float i = 0.0; i <= 7.5; i += 0.367318) {
-		testSkinMisclassification(fpRate, fnRate, i);
-		outFile << fpRate << "," << fnRate << std::endl;
+	// Start ROC processes
+	int iter = 1;
+	for(float i = minT; i <= maxT; i += stride, iter++) {
+		std::cout << "(" << iter << "/20)" << std::endl;
+
+		// Redefine variables
+		totalPix = 0;
+		fn = 0;
+		fp = 0;
+
+		// Test on first image
+		getImage((char*)TRN_PPM_2, image);
+		outImage = image;
+		getImage((char*)REF_PPM_2, refImage);
+
+		classifyForImage(image, outImage, i, isRGB);
+
+		getMisclass(outImage, refImage, fpTmp, fnTmp);
+		
+		outImage.getImageInfo(rows, cols, levels);
+		totalPix += rows * cols;
+		fp += fpTmp;
+		fn += fnTmp;
+
+		// Test on second image
+		getImage((char*)TRN_PPM_3, image);
+		outImage = image;
+		getImage((char*)REF_PPM_3, refImage);
+
+		classifyForImage(image, outImage, i, isRGB);
+
+		getMisclass(outImage, refImage, fp, fn);
+		
+		outImage.getImageInfo(rows, cols, levels);
+		totalPix += rows * cols;
+		fp += fpTmp;
+		fn += fnTmp;
+
+		// Calculate misclassification rates
+		fpRate = (float)fp / totalPix;
+		fnRate = (float)fn / totalPix;
+		outFile << i << "," << fpRate << "," << fnRate << std::endl;
 	}
 
 	outFile.close();
 }
 
-void calculateMeans() {
+void calculateMeans(char fName[]) {
 	float mur, mug;
-	estimateRGMean((char*)MOD_OUT, mur, mug);
+	estimateRGMean((char*)fName, mur, mug);
 
 	std::cout << std::endl << "Mean values:" << std::endl;
 	std::cout << "=========================" << std::endl;
@@ -147,14 +213,14 @@ void calculateMeans() {
 	std::cout << "g mean: " << mug << std::endl;
 }
 
-void calculateCov() {
+void calculateCov(char fName[]) {
 	float mur, mug, covrr, covgg, covrg;
 
 	// Get sample means
-	estimateRGMean((char*)MOD_OUT, mur, mug);
+	estimateRGMean((char*)fName, mur, mug);
 	
 	// Calculate covariances
-	estimateCovarianceRG((char*)MOD_OUT, covrr, covgg, covrg, mur, mug);
+	estimateCovarianceRG((char*)fName, covrr, covgg, covrg, mur, mug);
 
 	// Display results
 	std::cout << std::endl << "Covariance Values" << std::endl;
@@ -164,9 +230,35 @@ void calculateCov() {
 	std::cout << "COV(G,G) = " << covgg << std::endl;
 }
 
+
+void runParameterEstimation(bool isRGB) {
+	if (isRGB) {
+		calculatePriors();
+		calculateMeans((char*)MOD_OUT);
+		calculateCov((char*)MOD_OUT);
+	}
+	else {
+		calculatePriors();
+                calculateMeans((char*)MOD_YCC);
+                calculateCov((char*)MOD_YCC);
+	}
+}
+
+void runClassifyERR(bool isRGB) {
+	ImageType image;
+	ImageType outImage;
+
+	getImage((char*)TRN_PPM_1, image);
+	outImage = image;
+
+	classifyForImage(image, outImage, 6.75252, isRGB);
+
+	writeImagePPM((char*)"Classified_ERR.ppm", outImage);
+
+}
+
 int main(int argc, char** argv) {
-	//getROCVals();
-	float fp, fn;
-	testSkinMisclassification(fp, fn, 7.34636);
+	//runParameterEstimation(false);
+	getROCVals(true);
 	return 0;
 }

@@ -22,29 +22,28 @@
  * 	Classifies a pixel value as either skin or not skin.
  * args:
  * 	@pix: The pixel to classify.
- * 	@t: The threshold for classifying skin.
  * return:
  * 	true: if the pixel is classified as skin.
  * 	false: otherwise.
  */
 float classifyForPixel(RGB& pix) {
 	// Priors
-	float pIsSkin = 0.05484;
+	float pIsSkin = 0.0671455;
 
 	// Sample mean
 	Eigen::Vector2f mu;
-	mu << 0.417951, 0.301236;
+	mu << 0.432223, 0.295772;
 
 	// Sample covariance matrix
 	Eigen::Matrix2f covm;
-	covm << 0.00199935, -0.00094654,
-	     -0.00094654, 0.000656152;
+	covm << 0.00243316, -0.00111725,
+	     -0.00111725, 0.000788418;
 
 	int samples = 2;
 
 	// Calculate pixel feature values
-	int rgbSum = pix.r + pix.g + pix.b;
 	float r, g;
+	int rgbSum = pix.r + pix.g + pix.b;
 	if(rgbSum == 0) {
 		r = 0;
 		g = 0;
@@ -58,10 +57,50 @@ float classifyForPixel(RGB& pix) {
 	// Calculate conditional probability
 	//Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
 	
-	float prob = (x.transpose() * (-0.5 * covm.inverse()) * x) 
-		+ ((covm.inverse() * mu).transpose() * x)(0) 
-		+ (-0.5 * mu.transpose() * covm.inverse() * mu) 
-		+ (-0.5 * log(covm.determinant()));
+	float prob = (x.transpose() * (-0.5 * covm.inverse()) * x);
+	prob += ((covm.inverse() * mu).transpose() * x);
+	prob += (-0.5 * mu.transpose() * covm.inverse() * mu);
+	prob += (-0.5 * log(covm.determinant()));
+	
+	return prob;
+}
+
+
+/* classifyForPixelYCC():
+ * 	Classifies a pixel value as either skin or not skin.
+ * args:
+ * 	@pix: The pixel to classify.
+ * return:
+ * 	true: if the pixel is classified as skin.
+ * 	false: otherwise.
+ */
+float classifyForPixelYCC(RGB& pix) {
+	// Priors
+	float pIsSkin = 0.0671455;
+
+	// Sample mean
+	Eigen::Vector2f mu;
+	mu << 23.639, 22.2349;
+
+	// Sample covariance matrix
+	Eigen::Matrix2f covm;
+	covm << 48.9499, -0.328256,
+	     -0.328256, 176.883;
+
+	int samples = 2;
+
+	// Calculate pixel feature values
+	float r, g;
+	r = (0.500 * pix.r) - (0.419 * pix.g) - (0.081 * pix.b);
+	g = - (0.169 * pix.r) - (0.0332 * pix.g) + (0.500 * pix.b);
+	Eigen::Matrix<float, 2, 1> x(r, g);
+
+	// Calculate conditional probability
+	//Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
+	
+	float prob = (x.transpose() * (-0.5 * covm.inverse()) * x);
+	prob += ((covm.inverse() * mu).transpose() * x);
+	prob += (-0.5 * mu.transpose() * covm.inverse() * mu) + (-0.5 * log(covm.determinant()));
 	
 	return prob;
 }
@@ -73,10 +112,11 @@ float classifyForPixel(RGB& pix) {
  * 	@source: The image containing the pixels to classify.
  * 	@dest: The image to output the classified pixels.
  * 	@t: The threshold for classifying skin pixels.
+ * 	@type: The type of color scheme to use (1=RGB, 0=YCrCb).
  * return:
  * 	void
  */
-void classifyForImage(ImageType& source, ImageType& dest, float t) {
+void classifyForImage(ImageType& source, ImageType& dest, float t, bool type = true) {
 	// Variables
 	int rows, cols, levels;
 	RGB val;
@@ -92,7 +132,13 @@ void classifyForImage(ImageType& source, ImageType& dest, float t) {
 			source.getPixelVal(i, j/3, val);
 
 			// Classify pixel
-			float result = classifyForPixel(val); 
+			float result;
+			if (type == true) {
+				result = classifyForPixel(val); 
+			}
+			else {
+				result = classifyForPixelYCC(val);
+			}
 
 			// Output classification to destination image
 			if(result > t) {
