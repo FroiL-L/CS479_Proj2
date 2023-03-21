@@ -83,16 +83,16 @@ void calculatePriors() {
 	std::cout << "Total pixels encountered: " << totalCount << std::endl;
 }
 
-void testSkinClassification(bool isRGB, float t) {
+void testSkinClassification(char* inFile, char* outFile, bool isRGB, float t) {
 	ImageType image;
 	ImageType outImage;
 
-	getImage((char*)TRN_PPM_1, image);
+	getImage(inFile, image);
 	outImage = image;
 
 	classifyForImage(image, outImage, t, isRGB);
 
-	writeImagePPM((char*)"test.ppm", outImage);
+	writeImagePPM(outFile, outImage);
 }
 
 void testSkinMisclassification(float& fpRate, float& fnRate, float t, bool isRGB) {
@@ -135,16 +135,16 @@ void getROCVals(bool isRGB) {
 	// Configure for RGB
 	if (isRGB) {
 		fName = (char*)"roc.txt";
-		minT = 0.0;
-		maxT = 7.3;	// Max prob value = 7.10792
-		stride = maxT / 20;
+		minT = 0.00000;
+		maxT = 7.46400;		// Max prob value = 7.10792; adust for 21 iters
+		stride = 7.10792 / 20;
 	}
 	// Configure for YCrCb
 	else {
 		fName = (char*)"roc_ycc.txt";
-		minT = -4.53314 - 4.53314;	// Translate to match [0,maxT]
-		maxT = -4.6;			// Max prob value = -4.53314
-		stride = -maxT / 20;
+		minT = -4.53314 * 2;		// Translate to match [0,maxT]
+		maxT = -4.29900;		// Max prob value = -4.53314; adjust for 21 iters
+		stride = 4.53314 / 20;
 	}
 
 	// Open file
@@ -258,7 +258,9 @@ void runClassifyERR(bool isRGB) {
 }
 
 int main(int argc, char** argv) {
-	//runParameterEstimation(false);
-	getROCVals(true);
+	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_RGB_2.ppm", true, 6.75252);
+	testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_RGB_3.ppm", true, 6.75252);
+	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_YCC_2.ppm", false, -5.21311);
+        testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_YCC_3.ppm", false, -5.21311);
 	return 0;
 }
