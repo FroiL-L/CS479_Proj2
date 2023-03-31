@@ -13,12 +13,14 @@
 // Libraries
 #include <fstream>
 #include <stdlib.h>
+#include <time.h>
 
 #include "image.h"
 #include "ReadImage.h"
 #include "ReadImageHeader.h"
 #include "WriteImage.h"
 #include "rgb.h"
+#include "point.h"
 
 
 // Functions
@@ -257,4 +259,160 @@ void estimatePriors(char fName[], int& skinCount, int& totalCount) {
 			}
 		}
 	}
+}
+
+
+/* estimate2DMean():
+ * 	Estimates the mean for the two features in a set of data.
+ * args:
+ * 	@fName: Path to the file with data to work on.
+ * 	@mu1: Location to store mean of first feature.
+ * 	@mu2: location to store mean of second feature.
+ * return:
+ * 	void
+ */
+void estimate2DMean(char* fName, int& mu1, int& mu2) {
+	// Variables
+	std::ifstream inFile(fName);
+	float sum1, sum2, _;
+	float feat1, feat2;
+	int samples;
+
+	// Test for proper file access
+	if(!inFile.is_open()) {
+		std::cout << "Error: Could not open file " << fName << std::endl;
+		exit(1);
+	}
+
+	// Initialize variables for reading file
+	sum1 = 0.0;
+	sum2 = 0.0;
+	samples = 0;
+
+	// Begin reading samples
+	while(inFile >> feat1 >> feat2 >> _) {
+		sum1 += feat1;
+		sum2 += feat2;
+		samples++;
+	}
+
+	// Calculate mean
+	mu1 = sum1 / samples;
+	mu2 = sum2 / samples;
+}
+
+/* estimate2DCov():
+ * 	Estimate the covariance values in a covariance matrix for a
+ * 	2D feature space.
+ * args:
+ * 	@fName: Path to the file with data to work on.
+ * 	@mu1: Mean for the first feature.
+ * 	@mu2: Mean for th second feature.
+ * 	@cov11: Location to store the covariance for position 1,1.
+ * 	@cov12: Location to store the covariance for position 1,2.
+ * 	@cov22: Location to store the covariance for position 2,2.
+ * return:
+ * 	void
+ */
+void estimate2DCov(char* fName, float mu1, float mu2, float& cov11, float& cov12, float& cov22) {
+	// Variables
+	std::ifstream inFile(fName);
+	float x, y, _;
+	int samples;
+
+	// Test for proper file access
+	if(!inFile.is_open()) {
+		std::cout << "Error: Could not open file " << fName << std::endl;
+		exit(1);
+	}
+
+	// Initialize values for covariance matrix
+	cov11 = 0.0;
+	cov12 = 0.0;
+	cov22 = 0.0;
+	samples = 0;
+
+	// Begin reading from file
+	while(inFile >> x >> y >> _) {
+		cov11 += (x - mu1) * (x - mu1);
+		cov12 += (x - mu1) * (y - mu2);
+		cov22 += (y - mu2) * (y - mu2);
+		samples++;
+	}
+
+	// Calculate covariances
+	cov11 /= samples - 1;
+	cov12 /= samples - 1;
+	cov22 /= samples - 1;
+}
+
+
+/* randomDataSelect():
+ * 	Randomly selects portions of data from a set and returns it.
+ * args:
+ * 	@fName: The name of the file with the data to select from.
+ * 	@count1: The number of points to select from the first class.
+ * 	@count2: The number of points to select from the second class.
+ * 	@fDest: The location to store the selected data.
+ * return:
+ * 	void
+ */
+void randomDataSelect(char* fName, int count1, int count2, char* fDest) {
+	// Variables
+	float x, y, id;
+	int pos1 = 0, pos2 = 0;
+	point points1[60000];
+	point points2[140000];
+	std::ifstream inFile;
+	std::ofstream outFile;
+
+	// Open input file
+	inFile.open(fName);
+	if(!inFile.is_open()) {
+		std::cout << "Error: Could not access file " << fName << std::endl;
+	}
+
+	// Read in points
+	while(inFile >> x >> y >> id) {
+		point p;
+		p.x = x;
+		p.y = y;
+		p.id = id;
+
+		if(id == 1.0) {
+			points1[pos1] = p;
+			pos1++;
+		}
+		else {
+			points2[pos2] = p;
+			pos2++;
+		}
+	}
+
+	// Close input file
+	inFile.close();
+
+	// Open output file
+	outFile.open(fDest);
+	if(!outFile.is_open()) {
+		std::cout << "Error: Could not access file " << fDest << std::endl;
+	}
+
+	// Randomly select data
+	std::srand(time(NULL));
+	for(int i = 0; i < count1; i++) {
+		pos1 = std::rand() % 60001;
+		point p = points1[pos1];
+		outFile << p.x << " " << p.y << " " << p.id << std::endl;
+	}
+
+	for(int i = 0; i < count2; i++) {
+		pos2 = std::rand() % 140001;
+		point p = points2[pos2];
+		outFile << p.x << " " << p.y << " " << p.id << std::endl;
+	}
+
+	// Close output file
+	outFile.close();
+	
 }

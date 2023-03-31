@@ -16,6 +16,12 @@
 #define TRN_PPM_3 "./data/Training_6.ppm"
 #define MOD_OUT "model.txt"
 #define MOD_YCC "model_ycc.txt"
+#define GAUS_2 "ex2Data.txt"
+#define GAUS_2I "ex2Data_i.txt"
+#define GAUS_2II "ex2Data_ii.txt"
+#define GAUS_2III "ex2Data_iii.txt"
+#define GAUS_2IV "ex2Data_iv.txt"
+
 
 void basicCopyPaste() {
 	int r, c, maxval;
@@ -83,16 +89,16 @@ void calculatePriors() {
 	std::cout << "Total pixels encountered: " << totalCount << std::endl;
 }
 
-void testSkinClassification(bool isRGB, float t) {
+void testSkinClassification(char* inFile, char* outFile, bool isRGB, float t) {
 	ImageType image;
 	ImageType outImage;
 
-	getImage((char*)TRN_PPM_1, image);
+	getImage(inFile, image);
 	outImage = image;
 
 	classifyForImage(image, outImage, t, isRGB);
 
-	writeImagePPM((char*)"test.ppm", outImage);
+	writeImagePPM(outFile, outImage);
 }
 
 void testSkinMisclassification(float& fpRate, float& fnRate, float t, bool isRGB) {
@@ -135,16 +141,16 @@ void getROCVals(bool isRGB) {
 	// Configure for RGB
 	if (isRGB) {
 		fName = (char*)"roc.txt";
-		minT = 0.0;
-		maxT = 7.3;	// Max prob value = 7.10792
-		stride = maxT / 20;
+		minT = 0.00000;
+		maxT = 7.46400;		// Max prob value = 7.10792; adust for 21 iters
+		stride = 7.10792 / 20;
 	}
 	// Configure for YCrCb
 	else {
 		fName = (char*)"roc_ycc.txt";
-		minT = -4.53314 - 4.53314;	// Translate to match [0,maxT]
-		maxT = -4.6;			// Max prob value = -4.53314
-		stride = -maxT / 20;
+		minT = -4.53314 * 2;		// Translate to match [0,maxT]
+		maxT = -4.29900;		// Max prob value = -4.53314; adjust for 21 iters
+		stride = 4.53314 / 20;
 	}
 
 	// Open file
@@ -257,8 +263,26 @@ void runClassifyERR(bool isRGB) {
 
 }
 
+void genERRTests() {
+	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_RGB_2.ppm", true, 6.75252);
+	testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_RGB_3.ppm", true, 6.75252);
+	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_YCC_2.ppm", false, -5.21311);
+        testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_YCC_3.ppm", false, -5.21311);
+}
+
+void genPartitions() {
+	std::cout << std::endl << "Generating partitions..." << std::endl;
+	std::cout << "0.01% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.0001, 140000 * 0.0001, (char*)GAUS_2I);
+	std::cout << "0.1% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.001, 140000 * 0.001, (char*)GAUS_2II);
+	std::cout << "1% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.01, 140000 * 0.01, (char*)GAUS_2III);
+	std::cout << "10% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_2IV);
+}
+
 int main(int argc, char** argv) {
-	//runParameterEstimation(false);
-	getROCVals(true);
+	genPartitions();
 	return 0;
 }
