@@ -16,6 +16,12 @@
 #define TRN_PPM_3 "./data/Training_6.ppm"
 #define MOD_OUT "model.txt"
 #define MOD_YCC "model_ycc.txt"
+#define GAUS_2 "ex2Data.txt"
+#define GAUS_2I "ex2Data_i.txt"
+#define GAUS_2II "ex2Data_ii.txt"
+#define GAUS_2III "ex2Data_iii.txt"
+#define GAUS_2IV "ex2Data_iv.txt"
+
 
 void basicCopyPaste() {
 	int r, c, maxval;
@@ -257,10 +263,26 @@ void runClassifyERR(bool isRGB) {
 
 }
 
-int main(int argc, char** argv) {
+void genERRTests() {
 	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_RGB_2.ppm", true, 6.75252);
 	testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_RGB_3.ppm", true, 6.75252);
 	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_YCC_2.ppm", false, -5.21311);
         testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_YCC_3.ppm", false, -5.21311);
+}
+
+void genPartitions() {
+	std::cout << std::endl << "Generating partitions..." << std::endl;
+	std::cout << "0.01% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.0001, 140000 * 0.0001, (char*)GAUS_2I);
+	std::cout << "0.1% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.001, 140000 * 0.001, (char*)GAUS_2II);
+	std::cout << "1% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.01, 140000 * 0.01, (char*)GAUS_2III);
+	std::cout << "10% ..." << std::endl;
+	randomDataSelect((char*)GAUS_2, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_2IV);
+}
+
+int main(int argc, char** argv) {
+	genPartitions();
 	return 0;
 }
