@@ -282,7 +282,41 @@ void genPartitions() {
 	randomDataSelect((char*)GAUS_2, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_2IV);
 }
 
+void experiment2a() {
+	std::cout << std::endl << "Running experiment 2a..." << std::endl;
+
+	// Parameter variables
+	Eigen::Matrix<float, 2, 1> mu1;
+	Eigen::Matrix<float, 2, 1> mu2;
+	Eigen::Matrix2f covm1;
+	Eigen::Matrix2f covm2;
+
+	// Estimate mean
+	estimate2DMean((char*)GAUS_2, mu1, mu2);
+	std::cout << "Mean Vector 1:" << std::endl;
+	std::cout << "========================" << std::endl;
+	std::cout << mu1 << std::endl;
+	std::cout << "Mean Vector 2:" << std::endl;
+	std::cout << "========================" << std::endl;
+	std::cout << mu2 << std::endl;
+
+
+	// Estimate covariance matrix
+	estimate2DCov((char*)GAUS_2, mu1, mu2, covm1, covm2);
+	std::cout << "Covariance Matrix 1" << std::endl;
+	std::cout << "========================" << std::endl;
+	std::cout << covm1 << std::endl;
+	std::cout << "Covariance Matrix 2" << std::endl;
+	std::cout << "========================" << std::endl;
+	std::cout << covm2 << std::endl;
+
+
+	// Classify samples
+	//bayesCaseThree(mu1,mu2,covm1,covmB2,priorOne,priorTwo,B_OUTFILE, B_CLASSFILE);
+	
+}
+
 int main(int argc, char** argv) {
-	genPartitions();
+	experiment2a();
 	return 0;
 }
