@@ -1,27 +1,40 @@
+// Libraries
 #include <iostream>
 #include <fstream>
+
+#include "classification.hpp"
 #include "ReadImage.h"
 #include "ReadImageHeader.h"
 #include "WriteImage.h"
 #include "CreateModel.h"
 #include "ClassifySkin.h"
-
 #include "image.h"
 
+
+// Macros - Experiment 3
 #define REF_PPM_1 "./data/ref1.ppm"
 #define REF_PPM_2 "./data/ref3.ppm"
 #define REF_PPM_3 "./data/ref6.ppm"
 #define TRN_PPM_1 "./data/Training_1.ppm"
 #define TRN_PPM_2 "./data/Training_3.ppm"
 #define TRN_PPM_3 "./data/Training_6.ppm"
-#define MOD_OUT "model.txt"
-#define MOD_YCC "model_ycc.txt"
+#define MOD_OUT   "model.txt"
+#define MOD_YCC   "model_ycc.txt"
+
+// Macros - Experiment 2
 #define GAUS_2 "ex2Data.txt"
 #define GAUS_2I "ex2Data_i.txt"
 #define GAUS_2II "ex2Data_ii.txt"
 #define GAUS_2III "ex2Data_iii.txt"
 #define GAUS_2IV "ex2Data_iv.txt"
+#define GAUS_2_CLASS "ex2_Classified.txt"
+#define GAUS_2I_CLASS "ex2_i_Classified.txt"
+#define GAUS_2II_CLASS "ex2_ii_Classified.txt"
+#define GAUS_2III_CLASS "ex2_iii_Classified.txt"
+#define GAUS_2IV_CLASS "ex2_iv_Classified.txt"
 
+
+// Functions
 
 void basicCopyPaste() {
 	int r, c, maxval;
@@ -282,17 +295,18 @@ void genPartitions() {
 	randomDataSelect((char*)GAUS_2, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_2IV);
 }
 
-void experiment2a() {
-	std::cout << std::endl << "Running experiment 2a..." << std::endl;
-
-	// Parameter variables
+void experiment2Test(char* fTrain, char* fTest, char* fClass) {
+	// Variables
+	float priorOne = 0.3;
+	float priorTwo = 0.7;
+	std::vector<int> misclassCounts(2);
 	Eigen::Matrix<float, 2, 1> mu1;
 	Eigen::Matrix<float, 2, 1> mu2;
 	Eigen::Matrix2f covm1;
 	Eigen::Matrix2f covm2;
 
 	// Estimate mean
-	estimate2DMean((char*)GAUS_2, mu1, mu2);
+	estimate2DMean(fTrain, mu1, mu2);
 	std::cout << "Mean Vector 1:" << std::endl;
 	std::cout << "========================" << std::endl;
 	std::cout << mu1 << std::endl;
@@ -302,7 +316,7 @@ void experiment2a() {
 
 
 	// Estimate covariance matrix
-	estimate2DCov((char*)GAUS_2, mu1, mu2, covm1, covm2);
+	estimate2DCov(fTrain, mu1, mu2, covm1, covm2);
 	std::cout << "Covariance Matrix 1" << std::endl;
 	std::cout << "========================" << std::endl;
 	std::cout << covm1 << std::endl;
@@ -312,11 +326,45 @@ void experiment2a() {
 
 
 	// Classify samples
-	//bayesCaseThree(mu1,mu2,covm1,covmB2,priorOne,priorTwo,B_OUTFILE, B_CLASSFILE);
+	bayesCaseThree(mu1,mu2,covm1,covm2,priorOne,priorTwo,fTest,fClass);
+	
+	// Calculate misclassification rate
+	misclassifyCount(fTest, fClass, misclassCounts);
+	std::cout << "Misclassification counts:" << std::endl;
+	std::cout << "========================" << std::endl;
+	std::cout << "True 1, Incorrect: " << misclassCounts[0] << std::endl;
+	std::cout << "True 2, Incorrect: " << misclassCounts[1] << std::endl;
 	
 }
 
+void experiment2() {
+	std::cout << std::endl << "====================================" << std::endl;
+	std::cout << std::endl << "           EXPERIMENT 2A" << std::endl;
+	std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_2, (char*)GAUS_2, (char*)GAUS_2_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 2BI" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_2I, (char*)GAUS_2, (char*)GAUS_2I_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 2BII" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_2II, (char*)GAUS_2, (char*)GAUS_2II_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 2BIII" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_2III, (char*)GAUS_2, (char*)GAUS_2III_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 2BIV" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_2IV, (char*)GAUS_2, (char*)GAUS_2IV_CLASS);
+}
+
 int main(int argc, char** argv) {
-	experiment2a();
+	experiment2();
 	return 0;
 }
