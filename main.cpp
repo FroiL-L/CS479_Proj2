@@ -33,6 +33,18 @@
 #define GAUS_2III_CLASS "ex2_iii_Classified.txt"
 #define GAUS_2IV_CLASS "ex2_iv_Classified.txt"
 
+// Macors - Experiment 1
+#define GAUS_1 "ex1Data.txt"
+#define GAUS_1I "ex1Data_i.txt"
+#define GAUS_1II "ex1Data_ii.txt"
+#define GAUS_1III "ex1Data_iii.txt"
+#define GAUS_1IV "ex1Data_iv.txt"
+#define GAUS_1_CLASS "ex1_Classified.txt"
+#define GAUS_1I_CLASS "ex1_i_Classified.txt"
+#define GAUS_1II_CLASS "ex1_ii_Classified.txt"
+#define GAUS_1III_CLASS "ex1_iii_Classified.txt"
+#define GAUS_1IV_CLASS "ex1_iv_Classified.txt"
+
 
 // Functions
 
@@ -277,22 +289,35 @@ void runClassifyERR(bool isRGB) {
 }
 
 void genERRTests() {
-	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_RGB_2.ppm", true, 6.75252);
-	testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_RGB_3.ppm", true, 6.75252);
-	testSkinClassification((char*)TRN_PPM_1, (char*)"Classified_YCC_2.ppm", false, -5.21311);
-        testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_YCC_3.ppm", false, -5.21311);
+	testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_RGB_2.ppm", true, 6.75252);
+	testSkinClassification((char*)TRN_PPM_3, (char*)"Classified_RGB_3.ppm", true, 6.75252);
+	testSkinClassification((char*)TRN_PPM_2, (char*)"Classified_YCC_2.ppm", false, -5.21311);
+        testSkinClassification((char*)TRN_PPM_3, (char*)"Classified_YCC_3.ppm", false, -5.21311);
 }
 
-void genPartitions() {
-	std::cout << std::endl << "Generating partitions..." << std::endl;
-	std::cout << "0.01% ..." << std::endl;
-	randomDataSelect((char*)GAUS_2, 60000 * 0.0001, 140000 * 0.0001, (char*)GAUS_2I);
-	std::cout << "0.1% ..." << std::endl;
-	randomDataSelect((char*)GAUS_2, 60000 * 0.001, 140000 * 0.001, (char*)GAUS_2II);
-	std::cout << "1% ..." << std::endl;
-	randomDataSelect((char*)GAUS_2, 60000 * 0.01, 140000 * 0.01, (char*)GAUS_2III);
-	std::cout << "10% ..." << std::endl;
-	randomDataSelect((char*)GAUS_2, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_2IV);
+void genPartitions(int i) {
+	if (i == 1) {
+		std::cout << std::endl << "Generating partitions..." << std::endl;
+		std::cout << "0.01% ..." << std::endl;
+		randomDataSelect((char*)GAUS_1, 60000 * 0.0001, 140000 * 0.0001, (char*)GAUS_1I);
+		std::cout << "0.1% ..." << std::endl;
+		randomDataSelect((char*)GAUS_1, 60000 * 0.001, 140000 * 0.001, (char*)GAUS_1II);
+		std::cout << "1% ..." << std::endl;
+		randomDataSelect((char*)GAUS_1, 60000 * 0.01, 140000 * 0.01, (char*)GAUS_1III);
+		std::cout << "10% ..." << std::endl;
+		randomDataSelect((char*)GAUS_1, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_1IV);
+	}
+	else if(i == 2) {
+		std::cout << std::endl << "Generating partitions..." << std::endl;
+		std::cout << "0.01% ..." << std::endl;
+		randomDataSelect((char*)GAUS_2, 60000 * 0.0001, 140000 * 0.0001, (char*)GAUS_2I);
+		std::cout << "0.1% ..." << std::endl;
+		randomDataSelect((char*)GAUS_2, 60000 * 0.001, 140000 * 0.001, (char*)GAUS_2II);
+		std::cout << "1% ..." << std::endl;
+		randomDataSelect((char*)GAUS_2, 60000 * 0.01, 140000 * 0.01, (char*)GAUS_2III);
+		std::cout << "10% ..." << std::endl;
+		randomDataSelect((char*)GAUS_2, 60000 * 0.1, 140000 * 0.1, (char*)GAUS_2IV);
+	}
 }
 
 void experiment2Test(char* fTrain, char* fTest, char* fClass) {
@@ -337,6 +362,33 @@ void experiment2Test(char* fTrain, char* fTest, char* fClass) {
 	
 }
 
+void experiment1() {
+        std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 1A" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_1, (char*)GAUS_1, (char*)GAUS_1_CLASS);
+	
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 1BI" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_1I, (char*)GAUS_1, (char*)GAUS_1I_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 1BII" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_1II, (char*)GAUS_1, (char*)GAUS_1II_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 1BIII" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_1III, (char*)GAUS_1, (char*)GAUS_1III_CLASS);
+
+	std::cout << std::endl << "====================================" << std::endl;
+        std::cout << std::endl << "           EXPERIMENT 1BIV" << std::endl;
+        std::cout << std::endl << "====================================" << std::endl;
+	experiment2Test((char*)GAUS_1IV, (char*)GAUS_1, (char*)GAUS_1IV_CLASS);
+}
+
 void experiment2() {
 	std::cout << std::endl << "====================================" << std::endl;
 	std::cout << std::endl << "           EXPERIMENT 2A" << std::endl;
@@ -364,7 +416,34 @@ void experiment2() {
 	experiment2Test((char*)GAUS_2IV, (char*)GAUS_2, (char*)GAUS_2IV_CLASS);
 }
 
+void experiment3() {
+	std::cout << "\n=======================" << std::endl;
+	std::cout << "Experiment 3A" << std::endl;
+	std::cout << "=======================" << std::endl;
+	///// A /////
+	// Build model
+	runParameterEstimation(true);
+
+	// Generate ROC values
+	//getROCVals(true);
+	
+	std::cout << "\n=======================" << std::endl;
+        std::cout << "Experiment 3B" << std::endl;
+        std::cout << "=======================" << std::endl;
+	///// B /////
+	// Build model
+	runParameterEstimation(false);
+	
+	// Generate ROC values
+	//getROCVals(false);
+	
+	// Generate classified images with ERR
+	genERRTests();
+}
+
 int main(int argc, char** argv) {
+	experiment1();
 	experiment2();
+	experiment3();
 	return 0;
 }

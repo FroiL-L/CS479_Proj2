@@ -217,9 +217,9 @@ void estimateCovarianceRG(char fName[], float& covrr, float& covgg, float& covrg
 	inFile.close();
 
 	// Calculate means
-	covrr = rrSum / samples;
-	covgg = ggSum / samples;
-	covrg = rgSum / samples;
+	covrr = rrSum / (samples - 1);
+	covgg = ggSum / (samples - 1);
+	covrg = rgSum / (samples - 1);
 }
 
 
@@ -308,10 +308,10 @@ void estimate2DMean(char* fName, Eigen::Matrix<float, 2, 1>& mu1, Eigen::Matrix<
 	}
 
 	// Calculate means
-	sum11 /= samples1 - 1;
-	sum12 /= samples1 - 1;
-	sum21 /= samples2 - 1;
-	sum22 /= samples2 - 1;
+	sum11 /= samples1;
+	sum12 /= samples1;
+	sum21 /= samples2;
+	sum22 /= samples2;
 	
 	// Save means
 	mu1 << sum11, sum12;
