@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "Eigen/Dense"
 #include "image.h"
 #include "ReadImage.h"
 #include "ReadImageHeader.h"
@@ -216,9 +217,9 @@ void estimateCovarianceRG(char fName[], float& covrr, float& covgg, float& covrg
 	inFile.close();
 
 	// Calculate means
-	covrr = rrSum / samples;
-	covgg = ggSum / samples;
-	covrg = rgSum / samples;
+	covrr = rrSum / (samples - 1);
+	covgg = ggSum / (samples - 1);
+	covrg = rgSum / (samples - 1);
 }
 
 
@@ -271,12 +272,12 @@ void estimatePriors(char fName[], int& skinCount, int& totalCount) {
  * return:
  * 	void
  */
-void estimate2DMean(char* fName, int& mu1, int& mu2) {
+void estimate2DMean(char* fName, Eigen::Matrix<float, 2, 1>& mu1, Eigen::Matrix<float, 2, 1>& mu2) {
 	// Variables
 	std::ifstream inFile(fName);
-	float sum1, sum2, _;
-	float feat1, feat2;
-	int samples;
+	float sum11, sum12, sum21, sum22;
+	float x, y, id;
+	int samples1, samples2;
 
 	// Test for proper file access
 	if(!inFile.is_open()) {
@@ -285,20 +286,36 @@ void estimate2DMean(char* fName, int& mu1, int& mu2) {
 	}
 
 	// Initialize variables for reading file
-	sum1 = 0.0;
-	sum2 = 0.0;
-	samples = 0;
+	sum11 = 0.0;
+	sum12 = 0.0;
+	sum21 = 0.0;
+	sum22 = 0.0;
+	samples1 = 0;
+	samples2 = 0;
 
 	// Begin reading samples
-	while(inFile >> feat1 >> feat2 >> _) {
-		sum1 += feat1;
-		sum2 += feat2;
-		samples++;
+	while(inFile >> x >> y >> id) {
+		if(id == 1.0) {
+			sum11 += x;
+			sum12 += y;
+			samples1++;
+		}
+		else {
+			sum21 += x;
+			sum22 += y;
+			samples2++;
+		}
 	}
 
-	// Calculate mean
-	mu1 = sum1 / samples;
-	mu2 = sum2 / samples;
+	// Calculate means
+	sum11 /= samples1;
+	sum12 /= samples1;
+	sum21 /= samples2;
+	sum22 /= samples2;
+	
+	// Save means
+	mu1 << sum11, sum12;
+	mu2 << sum21, sum22;
 }
 
 /* estimate2DCov():
@@ -314,11 +331,18 @@ void estimate2DMean(char* fName, int& mu1, int& mu2) {
  * return:
  * 	void
  */
-void estimate2DCov(char* fName, float mu1, float mu2, float& cov11, float& cov12, float& cov22) {
+void estimate2DCov(char* fName, 
+		Eigen::Matrix<float, 2, 1>&  mu1, 
+		Eigen::Matrix<float, 2, 1>& mu2, 
+		Eigen::Matrix2f& covm1, 
+		Eigen::Matrix2f& covm2) {
 	// Variables
 	std::ifstream inFile(fName);
-	float x, y, _;
-	int samples;
+	float x, y, id;
+	float covm1_11, covm1_12, covm1_22;
+	float covm2_11, covm2_12, covm2_22;
+	float mu1x, mu1y, mu2x, mu2y;
+	int samples1, samples2;
 
 	// Test for proper file access
 	if(!inFile.is_open()) {
@@ -327,23 +351,48 @@ void estimate2DCov(char* fName, float mu1, float mu2, float& cov11, float& cov12
 	}
 
 	// Initialize values for covariance matrix
-	cov11 = 0.0;
-	cov12 = 0.0;
-	cov22 = 0.0;
-	samples = 0;
+	covm1_11 = 0.0;
+	covm1_12 = 0.0;
+	covm1_22 = 0.0;
+	covm2_11 = 0.0;
+	covm2_12 = 0.0;
+	covm2_22 = 0.0;
+	samples1 = 0;
+	samples2 = 0;
+	mu1x = mu1(0, 0);
+	mu1y = mu1(1, 0);
+	mu2x = mu2(0, 0);
+	mu2y = mu2(1, 0);
 
 	// Begin reading from file
-	while(inFile >> x >> y >> _) {
-		cov11 += (x - mu1) * (x - mu1);
-		cov12 += (x - mu1) * (y - mu2);
-		cov22 += (y - mu2) * (y - mu2);
-		samples++;
+	while(inFile >> x >> y >> id) {
+		if(id == 1.0) {
+			covm1_11 += (x - mu1x) * (x - mu1x);
+			covm1_12 += (x - mu1x) * (y - mu1y);
+			covm1_22 += (y - mu1y) * (y - mu1y);
+			samples1++;
+		}
+		else {
+			covm2_11 += (x - mu2x) * (x - mu2x);
+			covm2_12 += (x - mu2x) * (y - mu2y);
+			covm2_22 += (y - mu2y) * (y - mu2y);
+			samples2++;
+		}
 	}
 
 	// Calculate covariances
-	cov11 /= samples - 1;
-	cov12 /= samples - 1;
-	cov22 /= samples - 1;
+	covm1_11 /= samples1 - 1;
+	covm1_12 /= samples1 - 1;
+	covm1_22 /= samples1 - 1;
+	covm2_11 /= samples2 - 1;
+	covm2_12 /= samples2 - 1;
+	covm2_22 /= samples2 - 1;
+
+	// Save covariances
+	covm1 << covm1_11, covm1_12,
+	      covm1_12, covm1_22;
+	covm2 << covm2_11, covm2_12,
+	      covm2_12, covm2_22;
 }
 
 

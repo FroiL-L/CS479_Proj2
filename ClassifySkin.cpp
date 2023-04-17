@@ -36,8 +36,8 @@ float classifyForPixel(RGB& pix) {
 
 	// Sample covariance matrix
 	Eigen::Matrix2f covm;
-	covm << 0.00243316, -0.00111725,
-	     -0.00111725, 0.000788418;
+	covm << 0.00243317, -0.00111725,
+	     -0.00111725, 0.000788423;
 
 	int samples = 2;
 
@@ -84,8 +84,8 @@ float classifyForPixelYCC(RGB& pix) {
 
 	// Sample covariance matrix
 	Eigen::Matrix2f covm;
-	covm << 48.9499, -0.328256,
-	     -0.328256, 176.883;
+	covm << 48.9502, -0.328258,
+	     -0.328258, 176.884;
 
 	int samples = 2;
 
